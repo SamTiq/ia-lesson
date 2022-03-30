@@ -6,8 +6,8 @@ import torchvision.transforms as T
 
 
 # HYPER-PARAMETERS
-BATCH_SIZE = 10
-LEARNING_RATE = 0.0001
+BATCH_SIZE = 8
+LEARNING_RATE = 0.01
 NB_EPOCHS = 100
 
 
@@ -21,11 +21,18 @@ train_loader = torch.utils.data.DataLoader(train_set, batch_size=BATCH_SIZE)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE)
 
 # create the model, define its loss function, and an optimizaiton algorithm
-model = torch.nn.Linear(28*28, 10)
+model = torch.nn.Sequential(torch.nn.Flatten(),
+                            torch.nn.Linear(28*28, 32),
+                            torch.nn.ReLU(),
+                            torch.nn.Linear(32, 16),
+                            torch.nn.ReLU(),
+                            torch.nn.Linear(16, 10)
+                            )
 
-criterion = torch.nn.MSELoss()  # fonction de coût
+
+criterion = torch.nn.CrossEntropyLoss()  # fonction de coût
 # optimiseur, ce qui va dire comment les poids se mettent à jour
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
 # lr correspond à la taille des pas
 
@@ -34,8 +41,6 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 for epoch in range(100):
     train_loss = 0.0
     for x, t in train_loader:  # pour chaque élement de la database
-        
-        x = torch.nn.Flatten()(x)
         # Create one-hot vectors from the targets
         t = F.one_hot(t, num_classes=10)
 
@@ -56,7 +61,6 @@ for epoch in range(100):
 
     for x, t in test_loader:
 
-        x = torch.nn.Flatten()(x)
         # Create one-hot vectors from the targets
 
         y=model(x)
