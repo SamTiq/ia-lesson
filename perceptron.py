@@ -25,6 +25,7 @@ weight = torch.zeros(28*28, 10)
 # Define the bias of the model
 bias = torch.zeros(1, 10)
 
+print(weight.shape, bias.shape)
 # ITERATIONS
 for epoch in range(NB_EPOCHS):
     # TRAIN

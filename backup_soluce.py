@@ -1,12 +1,15 @@
+#89,5
+
 from numpy import dtype
 import torch
 import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as T
 from torch import tensor, cat
+from tqdm import tqdm
 
 # HYPER-PARAMETERS
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 LEARNING_RATE = 0.015
 NB_EPOCHS = 100
 
@@ -21,13 +24,19 @@ train_loader = torch.utils.data.DataLoader(train_set, batch_size=BATCH_SIZE)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE)
 
 # create the model, define its loss function, and an optimizaiton algorithm
-model = torch.nn.Sequential(torch.nn.Flatten(),
-                            torch.nn.Linear(28*28, 32),
+model = torch.nn.Sequential(torch.nn.Conv2d(1, 32, 7),
+                            torch.nn.BatchNorm2d(32),
                             torch.nn.ReLU(),
-                            torch.nn.Linear(32, 16),
+                            torch.nn.Conv2d(32, 16, 5),
+                            torch.nn.BatchNorm2d(16),
                             torch.nn.ReLU(),
-                            torch.nn.Linear(16, 10)
+                            torch.nn.Conv2d(16, 12, 3),
+                            torch.nn.BatchNorm2d(12),
+                            torch.nn.ReLU(),
+                            torch.nn.Flatten(),
+                            torch.nn.Linear(3072, 10)
                             )
+
 
 
 criterion = torch.nn.CrossEntropyLoss()  # fonction de coût
@@ -35,6 +44,8 @@ criterion = torch.nn.CrossEntropyLoss()  # fonction de coût
 optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
 # lr correspond à la taille des pas
+'''
+Moyen de calculer la moyenne et l'écart type
 all_data = []
 
 for x, t in train_loader:
@@ -45,11 +56,15 @@ big_tensor = torch.cat(all_data, dim=0)
 mean = big_tensor.mean()
 std = big_tensor.std()
 
-print(mean, std)
+Pour gain de temps, on rentre les valeurs directes
+'''
+
+
+mean, std = 0.2860, 0.3530
 # passe 100 fois sur la database (1 epoch = un parcours de toute la base)
 for epoch in range(100):
     train_loss = 0.0
-    for x, t in train_loader:  # pour chaque élement de la database
+    for x, t in tqdm(train_loader):  # pour chaque élement de la database
         # Create one-hot vectors from the targets
         t = F.one_hot(t, num_classes=10)
 
